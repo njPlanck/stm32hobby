@@ -43,6 +43,10 @@
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+uint32_t blink_count = 0;
+uint32_t tick_count = 0;
+uint32_t loop_count = 0;
+uint32_t current_now_time = 0;
 
 /* USER CODE END PV */
 
@@ -110,18 +114,32 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  uint32_t now = 0, last_blink = 0;
+  uint32_t now = 0, last_blink = 0, last_tick = 0;
   while (1)
   {
-
       now = HAL_GetTick();
+      current_now_time = now;
+
       if (now - last_blink >= 500){
+
+          blink_count++;
 
           printf("Toggling GPIO\n");
 
           HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
           last_blink = now;
+      }
+
+      if (now - last_tick >= 1000){
+
+          tick_count++;
+
+          printf("Tick %lu\n",now);
+
+          loop_count = 0;
+
+          last_tick = now;
       }
     /* USER CODE END WHILE */
 
@@ -228,6 +246,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BTN_Pin */
+  GPIO_InitStruct.Pin = BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BTN_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
